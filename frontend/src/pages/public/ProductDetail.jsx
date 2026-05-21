@@ -10,10 +10,6 @@ const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchProduct();
-  }, [id]);
-
   const fetchProduct = async () => {
     try {
       setLoading(true);
@@ -25,6 +21,10 @@ const ProductDetail = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchProduct();
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) return <Loader />;
 

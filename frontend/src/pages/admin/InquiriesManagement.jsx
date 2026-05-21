@@ -10,10 +10,6 @@ const InquiriesManagement = () => {
   const [selectedInquiry, setSelectedInquiry] = useState(null);
   const [filterStatus, setFilterStatus] = useState('');
 
-  useEffect(() => {
-    fetchInquiries();
-  }, [filterStatus]);
-
   const fetchInquiries = async () => {
     try {
       setLoading(true);
@@ -30,6 +26,10 @@ const InquiriesManagement = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchInquiries();
+  }, [filterStatus]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleStatusChange = async (id, status) => {
     try {

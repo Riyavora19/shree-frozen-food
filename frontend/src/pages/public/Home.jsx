@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaCheckCircle, FaLeaf, FaTruck, FaAward } from 'react-icons/fa';
 import { productsAPI } from '../../services/api';
-import { toast } from 'react-toastify';
 
 const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);

@@ -11,11 +11,6 @@ const Products = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchProducts();
-    fetchCategories();
-  }, [selectedCategory, searchTerm]);
-
   const fetchProducts = async () => {
     try {
       setLoading(true);
@@ -40,6 +35,11 @@ const Products = () => {
       console.error('Error fetching categories:', error);
     }
   };
+
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, [selectedCategory, searchTerm]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div>
