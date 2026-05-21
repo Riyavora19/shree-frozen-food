@@ -14,16 +14,16 @@ const Footer = () => {
               Premium quality frozen fruit pulps - pure, natural, and delicious.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-white hover:text-secondary transition-colors">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-secondary transition-colors">
                 <FaFacebook size={24} />
               </a>
-              <a href="#" className="text-white hover:text-secondary transition-colors">
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-secondary transition-colors">
                 <FaInstagram size={24} />
               </a>
-              <a href="#" className="text-white hover:text-secondary transition-colors">
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-secondary transition-colors">
                 <FaTwitter size={24} />
               </a>
-              <a href="#" className="text-white hover:text-secondary transition-colors">
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-secondary transition-colors">
                 <FaLinkedin size={24} />
               </a>
             </div>
