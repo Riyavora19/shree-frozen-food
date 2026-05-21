@@ -1,0 +1,52 @@
+========================================
+  SHREE FROZEN FOOD - HOW TO RUN
+========================================
+
+EASY METHOD (Just Double-Click):
+---------------------------------
+
+FIRST TIME ONLY:
+1. Double-click: SEED_DATABASE.bat
+   (Wait for success message)
+
+EVERY TIME YOU WANT TO RUN:
+2. Double-click: START_BACKEND.bat
+   (Keep window open)
+
+3. Double-click: START_FRONTEND.bat
+   (Browser opens automatically)
+
+IF PORT 5000 IS BUSY:
+- Double-click: kill-port-5000.bat
+- Then start backend again
+
+========================================
+
+WHAT YOU'LL SEE:
+----------------
+- Backend: "Server running on port 5000"
+- Frontend: Browser opens at http://localhost:3000
+
+ADMIN LOGIN:
+------------
+URL: http://localhost:3000/admin/login
+Email: admin@shreefrozenfood.com
+Password: admin123
+
+========================================
+
+TO STOP:
+--------
+Press Ctrl+C in each window
+Or close the windows
+
+========================================
+
+NEED HELP?
+----------
+Read: WINDOWS_GUIDE.md
+Or: TROUBLESHOOTING.md
+
+========================================
+
+ENJOY YOUR WEBSITE! 🚀

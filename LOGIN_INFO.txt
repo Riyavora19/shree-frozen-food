@@ -1,0 +1,50 @@
+========================================
+   ADMIN LOGIN CREDENTIALS
+========================================
+
+✅ Admin account has been created!
+
+LOGIN URL:
+http://localhost:3000/admin/login
+
+EMAIL:
+admin@shreefrozenfood.com
+
+PASSWORD:
+admin123
+
+========================================
+
+COPY-PASTE READY:
+-----------------
+Email:    admin@shreefrozenfood.com
+Password: admin123
+
+========================================
+
+AFTER LOGIN:
+------------
+You will see:
+- Dashboard with statistics
+- Inquiries management
+- Quick actions
+
+========================================
+
+TROUBLESHOOTING:
+----------------
+If login still fails:
+
+1. Check backend is running (port 5000)
+2. Check MongoDB is running
+3. Press F12 in browser → Console tab
+4. Look for error messages
+
+========================================
+
+NEED TO RESET?
+--------------
+Double-click: CREATE_ADMIN.bat
+(This will recreate the admin account)
+
+========================================
