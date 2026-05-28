@@ -34,7 +34,11 @@ exports.getCategoryById = async (req, res) => {
 // @access  Private/Admin
 exports.createCategory = async (req, res) => {
   try {
-    const { name, description, icon, active } = req.body;
+    const { name, description, image, active } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ message: 'Category name is required' });
+    }
 
     // Check if category already exists
     const categoryExists = await Category.findOne({ name });
@@ -44,9 +48,9 @@ exports.createCategory = async (req, res) => {
 
     const category = await Category.create({
       name,
-      description,
-      icon,
-      active
+      description: description || '',
+      image: image || '',
+      active: active !== undefined ? active : true
     });
 
     res.status(201).json(category);
@@ -64,8 +68,8 @@ exports.updateCategory = async (req, res) => {
 
     if (category) {
       category.name = req.body.name || category.name;
-      category.description = req.body.description || category.description;
-      category.icon = req.body.icon || category.icon;
+      category.description = req.body.description !== undefined ? req.body.description : category.description;
+      category.image = req.body.image !== undefined ? req.body.image : category.image;
       category.active = req.body.active !== undefined ? req.body.active : category.active;
 
       const updatedCategory = await category.save();

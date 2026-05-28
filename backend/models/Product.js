@@ -13,13 +13,7 @@ const productSchema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, 'Please add a category'],
-    enum: [
-      'Frozen Vegetables',
-      'Frozen Snacks',
-      'Frozen Paratha',
-      'Frozen Ready-to-Eat',
-      'Frozen Sweets'
-    ]
+    trim: true
   },
   image: {
     type: String,

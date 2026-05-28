@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { FaEdit, FaTrash, FaPlus, FaTag } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaTag, FaUpload, FaTimes, FaImage } from 'react-icons/fa';
 import { categoriesAPI } from '../../services/api';
 import { toast } from 'react-toastify';
 
@@ -9,6 +9,8 @@ const CategoriesManagement = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -24,9 +26,11 @@ const CategoriesManagement = () => {
     try {
       setLoading(true);
       const response = await categoriesAPI.getAll();
-      setCategories(response.data);
+      const data = response.data;
+      setCategories(Array.isArray(data) ? data : []);
     } catch (error) {
       toast.error('Failed to fetch categories');
+      setCategories([]);
     } finally {
       setLoading(false);
     }
@@ -34,10 +38,43 @@ const CategoriesManagement = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : value
-    });
+    setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { toast.error('Image must be less than 2MB'); return; }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+      setFormData(prev => ({ ...prev, image: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleImagePaste = (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let item of items) {
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result);
+          setFormData(prev => ({ ...prev, image: reader.result }));
+        };
+        reader.readAsDataURL(file);
+        toast.success('Image pasted!');
+        return;
+      }
+    }
+  };
+
+  const clearImage = () => {
+    setImagePreview('');
+    setFormData(prev => ({ ...prev, image: '' }));
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSubmit = async (e) => {
@@ -67,6 +104,7 @@ const CategoriesManagement = () => {
 
   const handleEdit = (category) => {
     setEditingCategory(category);
+    setImagePreview(category.image || '');
     setFormData({
       name: category.name,
       description: category.description || '',
@@ -90,12 +128,9 @@ const CategoriesManagement = () => {
 
   const resetForm = () => {
     setEditingCategory(null);
-    setFormData({
-      name: '',
-      description: '',
-      image: '',
-      active: true
-    });
+    setImagePreview('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    setFormData({ name: '', description: '', image: '', active: true });
   };
 
   const handleAddNew = () => {
@@ -230,22 +265,47 @@ const CategoriesManagement = () => {
                 ></textarea>
               </div>
 
-              {/* Image URL */}
+              {/* Image Upload */}
               <div>
-                <label className="block text-gray-700 font-medium mb-2">
-                  Image URL
-                </label>
-                <input
-                  type="url"
-                  name="image"
-                  value={formData.image}
-                  onChange={handleChange}
-                  placeholder="https://example.com/image.jpg"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  Optional: Add an image URL for this category
-                </p>
+                <label className="block text-gray-700 font-medium mb-2">Category Image</label>
+
+                {imagePreview && (
+                  <div className="relative mb-3 inline-block">
+                    <img src={imagePreview} alt="Preview" className="h-32 w-32 object-cover rounded-lg border border-gray-300" />
+                    <button type="button" onClick={clearImage} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
+                      <FaTimes size={10} />
+                    </button>
+                  </div>
+                )}
+
+                <div
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors mb-3"
+                  onClick={() => fileInputRef.current.click()}
+                  onPaste={handleImagePaste}
+                  tabIndex={0}
+                >
+                  <FaUpload className="mx-auto text-gray-400 mb-2" size={20} />
+                  <p className="text-sm text-gray-600 font-medium">Click to upload or <span className="text-primary">Ctrl+V</span> to paste image</p>
+                  <p className="text-xs text-gray-400 mt-1">PNG, JPG, JPEG up to 2MB</p>
+                  <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                </div>
+
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="flex-1 h-px bg-gray-200"></div>
+                  <span className="text-xs text-gray-400 font-medium">OR paste image URL</span>
+                  <div className="flex-1 h-px bg-gray-200"></div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <FaImage className="text-gray-400" />
+                  <input
+                    type="url"
+                    name="image"
+                    value={formData.image.startsWith('data:') ? '' : formData.image}
+                    onChange={(e) => { setFormData({ ...formData, image: e.target.value }); setImagePreview(e.target.value); }}
+                    placeholder="https://example.com/image.jpg"
+                    className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
               </div>
 
               {/* Active Checkbox */}

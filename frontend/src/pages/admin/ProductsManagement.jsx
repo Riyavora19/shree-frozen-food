@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { FaEdit, FaTrash, FaPlus, FaImage } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaImage, FaUpload, FaTimes } from 'react-icons/fa';
 import { productsAPI, categoriesAPI } from '../../services/api';
 import { toast } from 'react-toastify';
 
@@ -10,6 +10,8 @@ const ProductsManagement = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -35,9 +37,11 @@ const ProductsManagement = () => {
   const fetchCategories = async () => {
     try {
       const response = await categoriesAPI.getAll();
-      setCategories(response.data.filter(cat => cat.active));
+      const data = response.data;
+      setCategories(Array.isArray(data) ? data.filter(cat => cat.active) : []);
     } catch (error) {
       toast.error('Failed to fetch categories');
+      setCategories([]);
     }
   };
 
@@ -57,22 +61,53 @@ const ProductsManagement = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
     if (name.startsWith('nutrition.')) {
       const nutritionField = name.split('.')[1];
-      setFormData({
-        ...formData,
-        nutrition: {
-          ...formData.nutrition,
-          [nutritionField]: value
-        }
-      });
+      setFormData({ ...formData, nutrition: { ...formData.nutrition, [nutritionField]: value } });
     } else {
-      setFormData({
-        ...formData,
-        [name]: type === 'checkbox' ? checked : value
-      });
+      setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
     }
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image must be less than 2MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+      setFormData({ ...formData, image: reader.result });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleImagePaste = (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let item of items) {
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result);
+          setFormData(prev => ({ ...prev, image: reader.result }));
+        };
+        reader.readAsDataURL(file);
+        toast.success('Image pasted!');
+        return;
+      }
+    }
+  };
+
+  const clearImage = () => {
+    setImagePreview('');
+    setFormData(prev => ({ ...prev, image: '' }));
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSubmit = async (e) => {
@@ -102,6 +137,7 @@ const ProductsManagement = () => {
 
   const handleEdit = (product) => {
     setEditingProduct(product);
+    setImagePreview(product.image || '');
     setFormData({
       name: product.name,
       description: product.description,
@@ -111,12 +147,7 @@ const ProductsManagement = () => {
       price: product.price || 0,
       available: product.available,
       featured: product.featured || false,
-      nutrition: product.nutrition || {
-        calories: '',
-        protein: '',
-        carbs: '',
-        fat: ''
-      }
+      nutrition: product.nutrition || { calories: '', protein: '', carbs: '', fat: '' }
     });
     setShowModal(true);
   };
@@ -135,6 +166,8 @@ const ProductsManagement = () => {
 
   const resetForm = () => {
     setEditingProduct(null);
+    setImagePreview('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
     setFormData({
       name: '',
       description: '',
@@ -144,12 +177,7 @@ const ProductsManagement = () => {
       price: 0,
       available: true,
       featured: false,
-      nutrition: {
-        calories: '',
-        protein: '',
-        carbs: '',
-        fat: ''
-      }
+      nutrition: { calories: '', protein: '', carbs: '', fat: '' }
     });
   };
 
@@ -331,25 +359,70 @@ const ProductsManagement = () => {
                 </div>
               </div>
 
-              {/* Image URL */}
+              {/* Image Upload */}
               <div>
                 <label className="block text-gray-700 font-medium mb-2">
-                  Image URL
+                  Product Image
                 </label>
-                <div className="flex items-center space-x-2">
+
+                {/* Image Preview */}
+                {imagePreview && (
+                  <div className="relative mb-3 inline-block">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="h-32 w-32 object-cover rounded-lg border border-gray-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={clearImage}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                    >
+                      <FaTimes size={10} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Upload from device */}
+                <div
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors mb-3"
+                  onClick={() => fileInputRef.current.click()}
+                  onPaste={handleImagePaste}
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current.click()}
+                >
+                  <FaUpload className="mx-auto text-gray-400 mb-2" size={20} />
+                  <p className="text-sm text-gray-600 font-medium">Click to upload or <span className="text-primary">Ctrl+V</span> to paste image</p>
+                  <p className="text-xs text-gray-400 mt-1">PNG, JPG, JPEG up to 2MB</p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </div>
+
+                {/* OR URL input */}
+                <div className="flex items-center space-x-2 mb-1">
+                  <div className="flex-1 h-px bg-gray-200"></div>
+                  <span className="text-xs text-gray-400 font-medium">OR paste image URL</span>
+                  <div className="flex-1 h-px bg-gray-200"></div>
+                </div>
+                <div className="flex items-center space-x-2 mt-2">
                   <FaImage className="text-gray-400" />
                   <input
                     type="url"
                     name="image"
-                    value={formData.image}
-                    onChange={handleChange}
+                    value={formData.image.startsWith('data:') ? '' : formData.image}
+                    onChange={(e) => {
+                      setFormData({ ...formData, image: e.target.value });
+                      setImagePreview(e.target.value);
+                    }}
                     placeholder="https://example.com/image.jpg"
                     className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
-                <p className="text-sm text-gray-500 mt-1">
-                  Use Unsplash, Pexels, or your own image URL
-                </p>
               </div>
 
               {/* Price */}
