@@ -45,9 +45,11 @@ const ProductsManagement = () => {
     try {
       setLoading(true);
       const response = await productsAPI.getAll();
-      setProducts(response.data);
+      const data = response.data;
+      setProducts(Array.isArray(data) ? data : data.products || []);
     } catch (error) {
       toast.error('Failed to fetch products');
+      setProducts([]);
     } finally {
       setLoading(false);
     }
